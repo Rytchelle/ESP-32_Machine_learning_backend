@@ -58,14 +58,16 @@
     offline: '<svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2"><line x1="1" y1="1" x2="23" y2="23"/><path d="M16.72 11.06A10.94 10.94 0 0 1 19 12.55"/><line x1="12" y1="20" x2="12.01" y2="20"/></svg>'
   };
 
-  function saveToHistory(color, state) {
-    if (color === 'green') return;
+  function saveToHistory(color, state, prevColor) {
     try {
       const events = JSON.parse(localStorage.getItem('vibration_events') || '[]');
       const counts = JSON.parse(localStorage.getItem('vibration_counts') || '{"normal":0,"alerts":0,"anomalies":0}');
       
+      // Registra evento de mudança de estado
+      const typeMap = { red: 'anomaly', yellow: 'alert', green: 'normal' };
       events.push({
-        type: color === 'red' ? 'anomaly' : 'alert',
+        type: typeMap[color] || 'normal',
+        from: prevColor,
         timestamp: Date.now(),
         confidence: state?.confidence || 0,
         distance: state?.distance || 0,
@@ -73,8 +75,11 @@
       });
       
       if (events.length > 500) events.splice(0, events.length - 500);
+      
+      // Atualiza contadores
       if (color === 'red') counts.anomalies++;
-      else counts.alerts++;
+      else if (color === 'yellow') counts.alerts++;
+      else if (color === 'green') counts.normal++;
       
       localStorage.setItem('vibration_events', JSON.stringify(events));
       localStorage.setItem('vibration_counts', JSON.stringify(counts));
@@ -88,7 +93,7 @@
     const thresh = data.threshold || 0;
     
     if (color !== lastStatus) {
-      saveToHistory(color, data);
+      saveToHistory(color, data, lastStatus);
       lastStatus = color;
     }
     

@@ -81,10 +81,10 @@ class AnomalyDetector:
         else:
             confidence = min(0.95, 0.6 + (ratio - 1.5) * 0.1)
         
-        # Cor do status
+        # Cor do status - faixa amarela maior (0.5 a 1.0)
         if is_anomaly:
             status_color = "red"
-        elif ratio > 0.7:
+        elif ratio > 0.5:
             status_color = "yellow"
         else:
             status_color = "green"
