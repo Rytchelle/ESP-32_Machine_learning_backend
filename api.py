@@ -91,8 +91,18 @@ class AnomalyDetector:
         
         self.last_anomaly = is_anomaly
         
+        # LED status para ESP32: 0=verde, 1=amarelo, 2=vermelho
+        if status_color == "red":
+            led_status = 2
+        elif status_color == "yellow":
+            led_status = 1
+        else:
+            led_status = 0
+        
         return {
             "is_anomaly": is_anomaly,
+            "is_warning": status_color == "yellow",
+            "led_status": led_status,
             "confidence": sanitize_float(confidence),
             "distance": sanitize_float(distance),
             "threshold": sanitize_float(self.threshold),

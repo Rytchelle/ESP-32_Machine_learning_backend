@@ -173,15 +173,16 @@
         try {
           const data = JSON.parse(event.data);
           
-          if (data.type === 'prediction' && data.status) {
-            const color = data.status.status_color || 'green';
+          // Aceita tanto 'update' quanto 'init' (formato atual da API)
+          if (data.type === 'update' || data.type === 'init') {
+            const color = data.status_color || 'green';
             
             // Registra evento quando muda de estado
             if (color !== lastStatus) {
               if (color === 'red') {
-                addEvent('anomaly', data.status);
+                addEvent('anomaly', data);
               } else if (color === 'yellow') {
-                addEvent('alert', data.status);
+                addEvent('alert', data);
               } else if (lastStatus !== 'green') {
                 // Voltou ao normal
                 counts.normal++;
@@ -202,10 +203,30 @@
         setTimeout(connectWebSocket, 2000);
       };
       
+      // Ping para manter conexão
+      setInterval(() => {
+        if (ws.readyState === 1) {
+          ws.send('{"type":"ping"}');
+        }
+      }, 15000);
+      
     } catch (e) {
       console.error('[WS] Falha:', e);
     }
   }
+
+  // Recarrega dados do localStorage periodicamente (caso outra aba atualize)
+  setInterval(() => {
+    const storedEvents = JSON.parse(localStorage.getItem('vibration_events') || '[]');
+    const storedCounts = JSON.parse(localStorage.getItem('vibration_counts') || '{"normal":0,"alerts":0,"anomalies":0}');
+    if (storedEvents.length !== events.length || 
+        storedCounts.anomalies !== counts.anomalies ||
+        storedCounts.alerts !== counts.alerts) {
+      events = storedEvents;
+      counts = storedCounts;
+      updateDisplay();
+    }
+  }, 2000);
 
   // Inicialização
   updateDisplay();
