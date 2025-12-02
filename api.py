@@ -81,10 +81,10 @@ class AnomalyDetector:
         else:
             confidence = min(0.95, 0.6 + (ratio - 1.5) * 0.1)
         
-        # Cor do status - faixa amarela maior (0.5 a 1.0)
+        # Cor do status - faixa amarela bem maior (0.3 a 1.0)
         if is_anomaly:
             status_color = "red"
-        elif ratio > 0.5:
+        elif ratio > 0.3:
             status_color = "yellow"
         else:
             status_color = "green"
@@ -175,17 +175,16 @@ async def predict_anomaly(data: AccelerometerData):
     result = detector.predict(array_data)
     latest_status = result
     
-    # Broadcast via WebSocket
-    samples_list = list(recent_samples)[-200:]
+    # Broadcast via WebSocket - payload mínimo para reduzir latência
+    # Samples enviados separadamente só quando necessário
     msg = json.dumps({
         "type": "update",
         "status_color": result["status_color"],
-        "confidence": result["confidence"],
-        "distance": result["distance"],
-        "threshold": result["threshold"],
+        "confidence": round(result["confidence"], 2),
+        "distance": round(result["distance"], 3),
+        "threshold": round(result["threshold"], 3),
         "is_anomaly": result["is_anomaly"],
-        "timestamp": result["timestamp"],
-        "samples": samples_list
+        "timestamp": result["timestamp"]
     })
     await ws_manager.broadcast(msg)
     

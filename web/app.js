@@ -173,7 +173,6 @@
         const d = JSON.parse(e.data);
         if (d.type === 'update' || d.type === 'init') {
           updateUI(d);
-          if (d.samples) updateChart(d.samples);
           sensorIndicator.className = 'sensor-indicator connected';
           sensorStatusText.textContent = 'Recebendo';
         }
@@ -232,10 +231,24 @@
   fetchInitialState();
   connect();
   
-  // Polling de backup
+  // Polling de backup para estado
   setInterval(async () => {
     if (!ws || ws.readyState !== 1) {
-      await fetchInitialState();
+      try {
+        const res = await fetch('/realtime/state');
+        if (res.ok) updateUI(await res.json());
+      } catch(e) {}
     }
-  }, 2000);
+  }, 1000);
+
+  // Polling separado para gráfico (menor prioridade)
+  setInterval(async () => {
+    try {
+      const res = await fetch('/realtime/samples?limit=200');
+      if (res.ok) {
+        const { samples } = await res.json();
+        if (samples && samples.length) updateChart(samples);
+      }
+    } catch(e) {}
+  }, 1500);
 })();
