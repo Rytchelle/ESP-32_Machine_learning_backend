@@ -333,10 +333,13 @@ async def predict_anomaly(data: AccelerometerData):
             except Exception:
                 pass
         
+        # Envia samples junto com prediction para evitar request extra
+        recent_list = list(recent_samples)[-100:]
         await ws_manager.broadcast({
             "type": "prediction",
             "status": latest_status,
             "samples_count": len(recent_samples),
+            "samples": recent_list,
             "result": result
         })
 

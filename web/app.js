@@ -26,7 +26,7 @@
   let updateCount = 0;
   let lastFpsUpdate = Date.now();
   let samplesBuffer = [];
-  const MAX_CHART_POINTS = 200;
+  const MAX_CHART_POINTS = 100;
   let sensorConnected = false;
   let lastSensorDataTime = null;
   
@@ -282,6 +282,10 @@
               if (data.status) {
                 applyStatus(data.status.status_color || 'green', data.status);
               }
+              // Atualiza gráfico direto do WebSocket se tiver samples
+              if (data.samples && data.samples.length > 0) {
+                updateChart(data.samples);
+              }
               sensorConnected = true;
               lastSensorDataTime = Date.now();
               updateSensorStatus('connected', 'Recebendo dados');
@@ -303,9 +307,7 @@
             updateChart(data.samples);
           }
           
-          if (data.type === 'prediction') {
-            fetchSamples();
-          }
+          // Removido fetchSamples() aqui - já temos polling separado
         } catch (e) {
           console.error('[WS] Erro:', e);
         }
@@ -359,7 +361,7 @@
 
   async function fetchSamples() {
     try {
-      const res = await fetch('/realtime/samples?limit=200');
+      const res = await fetch('/realtime/samples?limit=100');
       if (res.ok) {
         const { samples } = await res.json();
         if (samples && samples.length > 0) {
@@ -424,5 +426,6 @@
   fetchSamples();
   fetchState();
   connectWebSocket();
-  setInterval(fetchSamples, 500);
+  // Reduzido polling - WebSocket já envia updates
+  setInterval(fetchSamples, 2000);
 })();
