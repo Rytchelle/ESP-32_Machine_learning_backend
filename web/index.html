@@ -1,0 +1,178 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Sistema de Monitoramento de Vibração</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <span>VibrationML</span>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="#" class="nav-item active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="historico.html" class="nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Histórico
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="sensor-status" id="sensor-indicator">
+        <span class="status-dot"></span>
+        <span id="sensor-status-text">Conectando...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <h1>Dashboard de Monitoramento</h1>
+        <p class="header-subtitle">Detecção de anomalias em tempo real</p>
+      </div>
+      <div class="header-right">
+        <div class="status-badge" id="status-badge">
+          <span class="status-indicator"></span>
+          <span id="status-text">Normal</span>
+        </div>
+      </div>
+    </header>
+
+    <!-- Alert Banner -->
+    <div id="alert-banner" class="alert-banner hidden">
+      <div class="alert-content">
+        <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        <span id="alert-text">Alerta</span>
+      </div>
+    </div>
+
+    <!-- Metrics Grid -->
+    <div class="metrics-grid">
+      <div class="metric-card primary" id="main-status-card">
+        <div class="metric-header">
+          <span class="metric-label">Status do Sistema</span>
+          <div class="metric-icon" id="main-icon">
+            <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/>
+              <polyline points="22 4 12 14.01 9 11.01"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="situation">Normal</div>
+        <div class="metric-footer">Sistema operando normalmente</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Confiança</span>
+          <div class="metric-icon blue">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <path d="M12 20V10"/><path d="M18 20V4"/><path d="M6 20v-4"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="confidence">—</div>
+        <div class="metric-progress">
+          <div class="progress-bar" id="confidence-bar"></div>
+        </div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Distância</span>
+          <div class="metric-icon purple">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+              <line x1="12" y1="16" x2="12.01" y2="16"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="distance">—</div>
+        <div class="metric-footer">Mahalanobis</div>
+      </div>
+
+      <div class="metric-card">
+        <div class="metric-header">
+          <span class="metric-label">Threshold</span>
+          <div class="metric-icon orange">
+            <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+              <line x1="4" y1="21" x2="4" y2="14"/><line x1="4" y1="10" x2="4" y2="3"/>
+              <line x1="12" y1="21" x2="12" y2="12"/><line x1="12" y1="8" x2="12" y2="3"/>
+              <line x1="20" y1="21" x2="20" y2="16"/><line x1="20" y1="12" x2="20" y2="3"/>
+            </svg>
+          </div>
+        </div>
+        <div class="metric-value" id="threshold">—</div>
+        <div class="metric-footer">Limite de detecção</div>
+      </div>
+
+    </div>
+
+    <!-- Chart Section -->
+    <div class="chart-section">
+      <div class="chart-card">
+        <div class="chart-header">
+          <div class="chart-title">
+            <h2>Aceleração em Tempo Real</h2>
+            <span class="chart-subtitle">Dados do acelerômetro MPU6050</span>
+          </div>
+          <div class="chart-legend">
+            <span class="legend-item"><span class="legend-dot x"></span>Eixo X</span>
+            <span class="legend-item"><span class="legend-dot y"></span>Eixo Y</span>
+            <span class="legend-item"><span class="legend-dot z"></span>Eixo Z</span>
+          </div>
+        </div>
+        <div class="chart-container">
+          <canvas id="vibrationChart"></canvas>
+        </div>
+      </div>
+    </div>
+
+    <!-- Footer Stats -->
+    <footer class="main-footer">
+      <div class="footer-stat">
+        <span class="footer-label">Amostras</span>
+        <span class="footer-value" id="samples-count">0</span>
+      </div>
+      <div class="footer-stat">
+        <span class="footer-label">Última atualização</span>
+        <span class="footer-value" id="updatedAt">—</span>
+      </div>
+      <div class="footer-stat">
+        <span class="footer-label">Taxa</span>
+        <span class="footer-value" id="fps-counter">0 upd/s</span>
+      </div>
+    </footer>
+  </main>
+
+  <script src="app.js"></script>
+</body>
+</html>

@@ -1,0 +1,147 @@
+<!DOCTYPE html>
+<html lang="pt-BR">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Histórico - VibrationML</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link href="https://fonts.googleapis.com/css2?family=Inter:wght@300;400;500;600;700&display=swap" rel="stylesheet">
+  <link rel="stylesheet" href="styles.css">
+</head>
+<body>
+  <!-- Sidebar -->
+  <aside class="sidebar">
+    <div class="sidebar-header">
+      <div class="logo">
+        <svg width="32" height="32" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M22 12h-4l-3 9L9 3l-3 9H2"/>
+        </svg>
+        <span>VibrationML</span>
+      </div>
+    </div>
+    
+    <nav class="sidebar-nav">
+      <a href="index.html" class="nav-item">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <rect x="3" y="3" width="7" height="7"/><rect x="14" y="3" width="7" height="7"/>
+          <rect x="14" y="14" width="7" height="7"/><rect x="3" y="14" width="7" height="7"/>
+        </svg>
+        Dashboard
+      </a>
+
+      <a href="historico.html" class="nav-item active">
+        <svg width="20" height="20" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+          <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+        </svg>
+        Histórico
+      </a>
+    </nav>
+    
+    <div class="sidebar-footer">
+      <div class="sensor-status" id="sensor-indicator">
+        <span class="status-dot"></span>
+        <span id="sensor-status-text">Conectando...</span>
+      </div>
+    </div>
+  </aside>
+
+  <!-- Main Content -->
+  <main class="main-content">
+    <!-- Header -->
+    <header class="main-header">
+      <div class="header-left">
+        <h1>Histórico de Eventos</h1>
+        <p class="header-subtitle">Registro de alertas e anomalias</p>
+      </div>
+      <div class="header-right">
+        <button class="btn-clear" onclick="clearHistory()">Limpar Histórico</button>
+      </div>
+    </header>
+
+    <!-- Aviso de Verificação Urgente -->
+    <div id="urgent-banner" class="urgent-banner hidden">
+      <div class="urgent-content">
+        <svg width="28" height="28" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+          <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+          <line x1="12" y1="16" x2="12.01" y2="16"/>
+        </svg>
+        <div class="urgent-text">
+          <span class="urgent-title">VERIFICAÇÃO DA MÁQUINA (URGENTE)</span>
+          <span class="urgent-desc" id="urgent-desc">Múltiplas anomalias detectadas</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Resumo -->
+    <div class="history-summary">
+      <div class="summary-card">
+        <div class="summary-icon green">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M22 11.08V12a10 10 0 1 1-5.93-9.14"/><polyline points="22 4 12 14.01 9 11.01"/>
+          </svg>
+        </div>
+        <div class="summary-info">
+          <span class="summary-value" id="total-normal">0</span>
+          <span class="summary-label">Leituras Normais</span>
+        </div>
+      </div>
+      
+      <div class="summary-card">
+        <div class="summary-icon yellow">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <path d="M10.29 3.86L1.82 18a2 2 0 0 0 1.71 3h16.94a2 2 0 0 0 1.71-3L13.71 3.86a2 2 0 0 0-3.42 0z"/>
+            <line x1="12" y1="9" x2="12" y2="13"/><line x1="12" y1="17" x2="12.01" y2="17"/>
+          </svg>
+        </div>
+        <div class="summary-info">
+          <span class="summary-value" id="total-alerts">0</span>
+          <span class="summary-label">Alertas</span>
+        </div>
+      </div>
+      
+      <div class="summary-card">
+        <div class="summary-icon red">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><line x1="12" y1="8" x2="12" y2="12"/>
+            <line x1="12" y1="16" x2="12.01" y2="16"/>
+          </svg>
+        </div>
+        <div class="summary-info">
+          <span class="summary-value" id="total-anomalies">0</span>
+          <span class="summary-label">Anomalias</span>
+        </div>
+      </div>
+      
+      <div class="summary-card">
+        <div class="summary-icon blue">
+          <svg width="24" height="24" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2">
+            <circle cx="12" cy="12" r="10"/><polyline points="12 6 12 12 16 14"/>
+          </svg>
+        </div>
+        <div class="summary-info">
+          <span class="summary-value" id="session-time">00:00:00</span>
+          <span class="summary-label">Tempo de Sessão</span>
+        </div>
+      </div>
+    </div>
+
+    <!-- Lista de Eventos -->
+    <div class="history-section">
+      <h2>Eventos Recentes</h2>
+      <div class="history-list" id="history-list">
+        <div class="history-empty">
+          <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1">
+            <path d="M14 2H6a2 2 0 0 0-2 2v16a2 2 0 0 0 2 2h12a2 2 0 0 0 2-2V8z"/>
+            <polyline points="14 2 14 8 20 8"/><line x1="16" y1="13" x2="8" y2="13"/>
+            <line x1="16" y1="17" x2="8" y2="17"/><polyline points="10 9 9 9 8 9"/>
+          </svg>
+          <p>Nenhum evento registrado ainda</p>
+        </div>
+      </div>
+    </div>
+  </main>
+
+  <script src="historico.js"></script>
+</body>
+</html>

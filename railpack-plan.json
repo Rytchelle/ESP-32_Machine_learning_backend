@@ -1,0 +1,9 @@
+{
+  "name": "ESP-32_Machine_learning_backend",
+  "plugins": [
+    {
+      "type": "python",
+      "version": "3.11"
+    }
+  ]
+}
