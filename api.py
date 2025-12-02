@@ -206,13 +206,17 @@ async def get_samples(limit: int = 50):
 async def websocket_endpoint(websocket: WebSocket):
     await ws_manager.connect(websocket)
     try:
-        # Envia estado inicial
+        # Envia estado inicial no mesmo formato do update
+        samples_list = list(recent_samples)[-200:]
         await websocket.send_text(json.dumps({
             "type": "init",
-            "s": latest_status.get("status_color", "green"),
-            "c": latest_status.get("confidence", 0),
-            "d": latest_status.get("distance", 0),
-            "t": detector.threshold
+            "status_color": latest_status.get("status_color", "green"),
+            "confidence": latest_status.get("confidence", 0),
+            "distance": latest_status.get("distance", 0),
+            "threshold": detector.threshold,
+            "is_anomaly": latest_status.get("is_anomaly", False),
+            "timestamp": latest_status.get("timestamp"),
+            "samples": samples_list
         }))
         
         while True:

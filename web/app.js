@@ -203,22 +203,34 @@
     lastFpsTime = now;
   }, 1000);
 
+  // Busca estado inicial via HTTP
+  async function fetchInitialState() {
+    try {
+      const res = await fetch('/realtime/state');
+      if (res.ok) {
+        const data = await res.json();
+        if (data.status_color) {
+          updateUI(data);
+        }
+      }
+    } catch(e) {}
+    try {
+      const res = await fetch('/realtime/samples?limit=200');
+      if (res.ok) {
+        const { samples } = await res.json();
+        if (samples && samples.length) updateChart(samples);
+      }
+    } catch(e) {}
+  }
+
   // Init
+  fetchInitialState();
   connect();
   
-  // Fallback polling caso WebSocket falhe
-  setTimeout(() => {
-    if (!lastDataTime) {
-      setInterval(async () => {
-        try {
-          const res = await fetch('/realtime/state');
-          if (res.ok) {
-            const data = await res.json();
-            updateUI(data);
-            lastDataTime = Date.now();
-          }
-        } catch(e) {}
-      }, 1000);
+  // Polling de backup
+  setInterval(async () => {
+    if (!ws || ws.readyState !== 1) {
+      await fetchInitialState();
     }
-  }, 5000);
+  }, 2000);
 })();
