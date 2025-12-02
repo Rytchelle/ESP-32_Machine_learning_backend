@@ -118,8 +118,8 @@ app.add_middleware(
 
 detector = AnomalyDetector("models/mahalanobis_model.npz")
 
-# Buffer pequeno - só para o gráfico (50 pontos = ~2 segundos)
-MAX_SAMPLES = 50
+# Buffer para o gráfico
+MAX_SAMPLES = 200
 recent_samples = deque(maxlen=MAX_SAMPLES)
 
 latest_status: Dict[str, Any] = {
@@ -164,11 +164,10 @@ async def predict_anomaly(data: AccelerometerData):
     
     array_data = np.array(data.data)
     
-    # Guarda só últimos pontos para o gráfico
+    # Guarda todos os pontos para o gráfico
     now_ms = int(datetime.now().timestamp() * 1000)
     if array_data.ndim == 2 and array_data.shape[0] > 0:
-        # Pega só os últimos 10 pontos do batch
-        for i in range(max(0, array_data.shape[0] - 10), array_data.shape[0]):
+        for i in range(array_data.shape[0]):
             x, y, z = float(array_data[i, 0]), float(array_data[i, 1]), float(array_data[i, 2])
             recent_samples.append({"x": x, "y": y, "z": z, "t": now_ms + i})
     
@@ -176,14 +175,16 @@ async def predict_anomaly(data: AccelerometerData):
     result = detector.predict(array_data)
     latest_status = result
     
-    # Broadcast via WebSocket - dados mínimos
-    samples_list = list(recent_samples)
+    # Broadcast via WebSocket
+    samples_list = list(recent_samples)[-200:]
     msg = json.dumps({
         "type": "update",
-        "s": result["status_color"],
-        "c": round(result["confidence"], 2),
-        "d": round(result["distance"], 3),
-        "a": result["is_anomaly"],
+        "status_color": result["status_color"],
+        "confidence": result["confidence"],
+        "distance": result["distance"],
+        "threshold": result["threshold"],
+        "is_anomaly": result["is_anomaly"],
+        "timestamp": result["timestamp"],
         "samples": samples_list
     })
     await ws_manager.broadcast(msg)
